@@ -15,13 +15,23 @@ export default class NewBill {
     this.billId = null
     new Logout({ document, localStorage, onNavigate })
   }
+
   handleChangeFile = e => {
     e.preventDefault()
-    const file = this.document.querySelector(`input[data-testid="file"]`).files[0]
-    const filePath = e.target.value.split(/\\/g)
-    const fileName = filePath[filePath.length-1]
-    const formData = new FormData()
+    const fileInput = this.document.querySelector(`input[data-testid="file"]`)
+    const file = fileInput.files[0]
+    const filePath = file.name
+    const fileName = filePath.split(/\\/g).pop()
     const email = JSON.parse(localStorage.getItem("user")).email
+
+    const allowedExtensions = /(\.jpg|\.jpeg|\.png)$/i
+    if (!allowedExtensions.test(file.name)) {
+      alert("Seuls les fichiers .jpg, .jpeg ou .png sont autorisés.")
+      fileInput.value = '' // Réinitialise le champ
+      return
+    }
+
+    const formData = new FormData()
     formData.append('file', file)
     formData.append('email', email)
 
@@ -33,8 +43,7 @@ export default class NewBill {
           noContentType: true
         }
       })
-      .then(({fileUrl, key}) => {
-        console.log(fileUrl)
+      .then(({ fileUrl, key }) => {
         this.billId = key
         this.fileUrl = fileUrl
         this.fileName = fileName
@@ -42,7 +51,6 @@ export default class NewBill {
   }
   handleSubmit = e => {
     e.preventDefault()
-    console.log('e.target.querySelector(`input[data-testid="datepicker"]`).value', e.target.querySelector(`input[data-testid="datepicker"]`).value)
     const email = JSON.parse(localStorage.getItem("user")).email
     const bill = {
       email,
@@ -65,7 +73,7 @@ export default class NewBill {
   updateBill = (bill) => {
     if (this.store) {
       this.store
-      .bills()
+        .bills()
       .update({data: JSON.stringify(bill), selector: this.billId})
       .then(() => {
         this.onNavigate(ROUTES_PATH['Bills'])
