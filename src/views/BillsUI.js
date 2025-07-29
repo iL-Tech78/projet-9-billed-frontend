@@ -28,6 +28,7 @@ const rows = (data) => {
     : ""
 }
 
+
 export default ({ data: bills, loading, error }) => {
   
   const modal = () => (`
